@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Aug  3 09:19:02 2023
 
@@ -13,9 +12,7 @@ def get_dataset_chunks(ds):
     chunks = {}
     for var in variable_names:
         if ds[var].chunks is not None:
-            chunks[var] = {
-                dim: v[0] for dim, v in zip(ds[var].dims, ds[var].chunks, strict=True)
-            }
+            chunks[var] = {dim: v[0] for dim, v in zip(ds[var].dims, ds[var].chunks, strict=True)}
         else:
             chunks[var] = None
     return chunks

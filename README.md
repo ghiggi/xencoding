@@ -67,7 +67,7 @@ If you want to cite a specific version, have a look at the [Zenodo site](https:/
 ## Requirements:
 
 - [xarray](https://docs.xarray.dev/en/stable/)
-- [netcdf4](hhttps://unidata.github.io/netcdf4-python/) (MAYBE NOT ... HDF5?)
+- [netcdf4](hhttps://unidata.github.io/netcdf4-python/)
 - [zarr](https://github.com/zarr-developers/zarr-python)
 - [numcodecs](https://github.com/zarr-developers/numcodecs)
 

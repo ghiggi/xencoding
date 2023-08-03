@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Jul 29 16:11:33 2021.
 
 @author: ghiggi
 """
-import zarr 
-import os 
+import os
+
+import zarr
+
 from xencoding.checks.chunks import check_chunks
 from xencoding.checks.compressor import check_compressor
 from xencoding.checks.rounding import check_rounding
@@ -30,7 +31,7 @@ def write_zarr(
     # append=True: if zarr_fpath do not exists, set to False (for the first write)
     ##-------------------------------------------------------------------------.
     from dask.diagnostics import ProgressBar
-    
+
     ### Check zarr_fpath and append options
     # - Check fpath
     if not zarr_fpath.endswith(".zarr"):
@@ -66,9 +67,7 @@ def write_zarr(
 
     ##------------------------------------------------------------------------.
     # - Define rounding option
-    rounding = check_rounding(
-        rounding=rounding, variable_names=list(ds.data_vars.keys())
-    )
+    rounding = check_rounding(rounding=rounding, variable_names=list(ds.data_vars.keys()))
 
     ##------------------------------------------------------------------------.
     # - Rounding (if required)
@@ -87,9 +86,7 @@ def write_zarr(
     # for var in ds.data_vars.keys():
     #     ds[var].encoding['filters'] = None
     for dim in list(ds.dims.keys()):
-        ds[dim].encoding[
-            "filters"
-        ] = None  # Without this, bug when coords are str objects
+        ds[dim].encoding["filters"] = None  # Without this, bug when coords are str objects
 
     ##------------------------------------------------------------------------.
     # - Add chunk encoding the dataset
@@ -135,17 +132,3 @@ def write_zarr(
         if show_progress:
             with ProgressBar():
                 r.compute()
-
-
-
-
-
-
-
-
-
- 
-
-
-
- 

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Aug  3 09:10:20 2023
 
 @author: ghiggi
 """
-import numpy as np 
-import xarray as xr 
+import numpy as np
+import xarray as xr
+
 from xencoding.utils.chunks import get_dataset_chunks
 
 
@@ -95,7 +95,7 @@ def _check_default_chunks(default_chunks, ds):
         if not is_chunks_per_variable and not is_chunks_per_dims:
             # TODO: more info error on which dim or var is missing
             raise ValueError(
-                "Unvalid default_chunks. Must include all Dataset variables or dimensions."
+                "Invalid default_chunks. Must include all Dataset variables or dimensions."
             )
     return default_chunks
 
@@ -104,7 +104,7 @@ def _convert_dims_chunks_dict(ds, chunks):
     """Convert 'per dimension' chunks dictionary to 'per variable' dictionary."""
     # - Checks chunks value validity
     if not _all_integer_chunks_values(list(chunks.values())):
-        raise ValueError("Unvalid 'chunks' values")
+        raise ValueError("Invalid 'chunks' values")
     # - Create dictionary for each variable
     new_chunks = {}
     for var in list(ds.data_vars):
@@ -122,9 +122,7 @@ def _check_chunks_dict(chunks, ds):
     is_chunks_per_dims = _is_chunk_dict_per_dims(chunks, ds)
     if not is_chunks_per_variable and not is_chunks_per_dims:
         # TODO: more info error on which dim or var is missing
-        raise ValueError(
-            "Unvalid chunks. Must include all Dataset variables or dimensions."
-        )
+        raise ValueError("Invalid chunks. Must include all Dataset variables or dimensions.")
 
     if is_chunks_per_variable:
         chunks = _checks_variables_chunks_dict(ds, chunks)
@@ -143,7 +141,7 @@ def _checks_variables_chunks_dict(ds, chunks):
     # - Check chunks value validity
     for var in list(ds.data_vars):
         if not _all_integer_chunks_values(list(chunks[var].values())):
-            raise ValueError("Unvalid 'chunks' values for {var}.")
+            raise ValueError("Invalid 'chunks' values for {var}.")
     return chunks
 
 

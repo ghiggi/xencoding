@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Aug  3 09:07:51 2023
 
 @author: ghiggi
 """
-import numpy as np 
+import numpy as np
 
 
 def is_numcodecs(compressor):
@@ -22,17 +21,13 @@ def _check_variables_names_type(variable_names):
     if isinstance(variable_names, str):
         variable_names = [variable_names]
     if not all([isinstance(s, str) for s in variable_names]):
-        raise TypeError(
-            "Specify all variable names as string within the 'variable_names' list."
-        )
+        raise TypeError("Specify all variable names as string within the 'variable_names' list.")
     return variable_names
 
 
 def _check_compressor_type(compressor, variable_names):
     """Check compressor type."""
-    if not (
-        isinstance(compressor, (str, dict, type(None))) or is_numcodecs(compressor)
-    ):
+    if not (isinstance(compressor, (str, dict, type(None))) or is_numcodecs(compressor)):
         raise TypeError(
             "'compressor' must be a dictionary, numcodecs compressor, 'auto' string or None."
         )
@@ -41,18 +36,13 @@ def _check_compressor_type(compressor, variable_names):
             raise ValueError("If 'compressor' is specified as string, must be 'auto'.")
     if isinstance(compressor, dict):
         if not np.all(np.isin(list(compressor.keys()), variable_names)):
-            raise ValueError(
-                f"The 'compressor' dictionary must contain the keys {variable_names}"
-            )
+            raise ValueError(f"The 'compressor' dictionary must contain the keys {variable_names}")
     return compressor
 
 
 def _check_default_compressor_type(default_compressor, variable_names):
     """Check default_compressor type."""
-    if not (
-        isinstance(default_compressor, (dict, type(None)))
-        or is_numcodecs(default_compressor)
-    ):
+    if not (isinstance(default_compressor, (dict, type(None))) or is_numcodecs(default_compressor)):
         raise TypeError("'default_compressor' must be a numcodecs compressor or None.")
     if isinstance(default_compressor, dict):
         if not np.all(np.isin(list(default_compressor.keys()), variable_names)):
@@ -64,9 +54,7 @@ def _check_default_compressor_type(default_compressor, variable_names):
 
 def _check_compressor_dict(compressor):
     """Check compressor dictionary validity."""
-    all_valid = [
-        is_numcodecs(cmp) or isinstance(cmp, type(None)) for cmp in compressor.values()
-    ]
+    all_valid = [is_numcodecs(cmp) or isinstance(cmp, type(None)) for cmp in compressor.values()]
     if not all(all_valid):
         raise ValueError(
             "All compressors specified in the 'compressor' dictionary must be numcodecs (or None)."
@@ -78,7 +66,8 @@ def check_compressor(compressor, variable_names, default_compressor=None):
     """Check compressor validity for zarr writing.
 
     compressor = None --> No compression.
-    compressor = "auto" --> Use default_compressor if specified. Otherwise will default to ds.to_zarr() default compressor.
+    compressor = "auto" --> Use default_compressor if specified.
+      Otherwise will default to ds.to_zarr() default compressor.
     compressor = <numcodecs class> --> Specify the same compressor to all Dataset variables
     compressor = {..} --> A dictionary specifying a compressor for each Dataset variable.
 
@@ -103,4 +92,3 @@ def check_compressor(compressor, variable_names, default_compressor=None):
         compressor = _check_compressor_dict(compressor)
 
     return compressor
-

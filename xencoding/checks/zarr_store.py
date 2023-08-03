@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Aug  3 09:13:22 2023
 
 @author: ghiggi
 """
-import os 
-import shutil 
+import os
+import shutil
 
 
 def _check_zarr_store(target_store, force):

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Aug  3 09:20:20 2023
 
@@ -22,9 +21,7 @@ def check_rounding(rounding, variable_names):
     if isinstance(variable_names, str):
         variable_names = [variable_names]
     if not all([isinstance(s, str) for s in variable_names]):
-        raise ValueError(
-            "Specify all variable names as string within the 'variable_names' list."
-        )
+        raise ValueError("Specify all variable names as string within the 'variable_names' list.")
     # Check rounding type
     if not isinstance(rounding, (int, dict, type(None))):
         raise TypeError("'rounding' must be a dictionary, integer or None.")
@@ -32,11 +29,7 @@ def check_rounding(rounding, variable_names):
     # If a dictionary, check valid keys and valid compressor
     if isinstance(rounding, dict):
         if not np.all(np.isin(list(rounding.keys()), variable_names)):
-            raise ValueError(
-                "The 'rounding' dictionary must contain the keys {}.".format(
-                    variable_names
-                )
-            )
+            raise ValueError(f"The 'rounding' dictionary must contain the keys {variable_names}.")
         if not all([isinstance(v, (int, type(None))) for v in rounding.values()]):
             raise ValueError(
                 "The rounding decimals specified in the 'rounding' dictionary must be integers (or None)."

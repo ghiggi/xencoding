@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Aug  3 09:02:52 2023
 
 @author: ghiggi
 """
-import xarray as xr 
-import zarr
-import time 
+import itertools
+import shutil
+import time
+
 import numcodecs
-import numpy as np 
-import shutil 
+import numpy as np
+import xarray as xr
+import zarr
+
+from xencoding.zarr.writer import write_zarr
 
 
 ###############################################
@@ -60,9 +63,7 @@ def get_storage_ratio_zarr(fpath):
     """Return storage ratio for the entire store."""
     stored_nbytes_coords = get_nbytes_stored_zarr_coordinates(fpath)
     stored_nbytes_variables = get_nbytes_stored_zarr_variables(fpath)
-    stored_nbytes = sum(stored_nbytes_coords.values()) + sum(
-        stored_nbytes_variables.values()
-    )
+    stored_nbytes = sum(stored_nbytes_coords.values()) + sum(stored_nbytes_variables.values())
     ds = xr.open_zarr(fpath)
     nbytes = ds.nbytes / 1024 / 1024
     storage_ratio = nbytes / stored_nbytes
@@ -74,9 +75,7 @@ def get_storage_ratio_zarr(fpath):
 #### Memory size
 def get_memory_size_dataset(ds):
     """Return size in MB of variables and coordinates."""
-    size_dict = {
-        k: ds[k].nbytes / 1024 / 1024 for k in list(ds.keys()) + list(ds.coords.keys())
-    }
+    size_dict = {k: ds[k].nbytes / 1024 / 1024 for k in list(ds.keys()) + list(ds.coords.keys())}
     return size_dict
 
 
@@ -118,7 +117,8 @@ def get_memory_size_chunk(x):
 
     If x is an xr.Dataset, it returns a dictionary with the chunk size of each variable.
     """
-    import dask 
+    import dask
+
     if isinstance(x, xr.Dataset):
         size_dict = {}
         for var in list(x.data_vars.keys()):
@@ -127,9 +127,7 @@ def get_memory_size_chunk(x):
     if isinstance(x, xr.DataArray):
         # If chunked: return the size of the chunk
         if x.chunks is not None:
-            isel_dict = {
-                dim: slice(0, chunks[0]) for dim, chunks in zip(x.dims, x.chunks)
-            }
+            isel_dict = {dim: slice(0, chunks[0]) for dim, chunks in zip(x.dims, x.chunks)}
             x = x.isel(isel_dict)
             return x.nbytes / 1024 / 1024
         # If not chunked, return the size of the entire array
@@ -165,9 +163,7 @@ def get_reading_time(fpath, isel_dict={}, n_repetitions=5):
 
 def get_reading_throughput(fpath, isel_dict={}, n_repetitions=10):
     """Return the reading throughput (MB/s) of a Dataset (subset)."""
-    times = get_reading_time(
-        fpath=fpath, isel_dict=isel_dict, n_repetitions=n_repetitions
-    )
+    times = get_reading_time(fpath=fpath, isel_dict=isel_dict, n_repetitions=n_repetitions)
     size_dict = get_memory_size_zarr(fpath, isel_dict=isel_dict)
     throughput = sum(size_dict.values()) / np.array(times)
     return throughput.tolist()
@@ -274,9 +270,7 @@ def _get_blosc_compressors(clevels=[0, 1, 3, 5, 9]):
     compressors = {}
     for shuffle, clevel, cname in possible_args:
         k_name = cname + "_cl" + str(clevel) + "_s" + str(shuffle)
-        compressors[k_name] = numcodecs.blosc.Blosc(
-            cname=cname, clevel=clevel, shuffle=shuffle
-        )
+        compressors[k_name] = numcodecs.blosc.Blosc(cname=cname, clevel=clevel, shuffle=shuffle)
     return compressors
 
 

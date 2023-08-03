@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Aug  3 09:05:13 2023
 
 @author: ghiggi
 """
-import shutil 
 from xencoding.zarr.checks.chunks import check_chunks
 from xencoding.zarr.checks.zarr_store import _check_zarr_store
 
@@ -41,9 +39,9 @@ def rechunk_dataset(ds, chunks, target_store, temp_store, max_mem="2GB", force=F
     # options = dict(compressor=compressor)
     # rechunk(..., target_options=options)
     ##------------------------------------------------------------------------.
-    from rechunker import rechunk
     from dask.diagnostics import ProgressBar
-    
+    from rechunker import rechunk
+
     # Check zarr stores
     _check_zarr_store(target_store, force=force)
     _check_zarr_store(temp_store, force=True)  # remove if exists
@@ -66,6 +64,3 @@ def rechunk_dataset(ds, chunks, target_store, temp_store, max_mem="2GB", force=F
 
     # Remove temporary store
     _check_zarr_store(temp_store, force=True)  # remove if exists
-    
-
- 
