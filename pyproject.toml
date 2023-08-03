@@ -1,0 +1,139 @@
+# pyproject.toml
+
+[build-system]
+requires = ["setuptools>=61.0.0", "setuptools_scm[toml]>=6.2", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xencoding"
+description = "Toolset to define and optimize netCDF and Zarr Datasets encodings"
+readme = "README.md"
+authors = [
+	{ name = "Gionata Ghiggi", email = "gionata.ghiggi@epfl.ch" },
+]
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Operating System :: Unix",
+    "Operating System :: Microsoft",
+    "Operating System :: MacOS",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+]
+keywords = ["netcdf", "zarr", "encoding", "data compression", "bandwidth", "optimization"]
+dependencies = [
+    "xarray",
+    "zarr",
+    "netcdf4",
+    "numcodecs",
+]
+requires-python = ">=3.8"
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = ["pre-commit",
+       "black", "black[jupyter]", "blackdoc", "ruff", "codespell",
+       "pytest", "pytest-cov", "pytest-mock", "pydantic",
+       "pip-tools", "bumpver", "twine",
+       "setuptools>=61.0.0", "wheel",
+       "sphinx", "sphinx-gallery", "sphinx_rtd_theme", "nbsphinx"]
+
+[project.urls]
+Homepage = "https://github.com/ghiggi/xencoding"
+Source = "https://github.com/ghiggi/xencoding"
+Tracker = "https://github.com/ghiggi/xencoding/issues"
+Documentation = "https://xencoding.readthedocs.io"
+changelog = "https://github.com/ghiggi/xencoding/CHANGELOG.md"
+
+[tool.setuptools_scm]
+write_to = "xencoding/_version.py"
+
+[tool.setuptools]
+license-files = ["LICENSE"]
+packages = ["xencoding"] # explicitly list the packages in modules
+
+[tool.black]
+line-length = 100
+# skip-string-normalization = true
+target-version = [
+    "py37",
+    "py38",
+    "py39",
+    "py310",
+    "py311",
+]
+
+[tool.ruff]
+select = ["F",
+	  "E",
+	  "I",
+	  "W",
+	  "UP",
+	  "Q",
+	  # "SIM",
+	  # "PTH",
+	  #"RET",
+	 ]
+ignore = ["E722"]
+line-length = 120
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+unfixable = []
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    "dev*",
+    "xencoding/test*",
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+[tool.codespell]
+    ignore-words-list = 'nD'
+
+[tool.coverage]
+    [tool.coverage.run]
+    source = ["xencoding"]
+    omit = [
+        "*dev*",
+        "*docs*",
+        "*tutorials*",
+        "*/xencoding/tests*",
+        "*/xencoding/cli*",
+    ]
+
+    [tool.coverage.report]
+    exclude_lines = [
+        "pragma: no cover",
+        "def __repr__",
+        "def __str__",
+    ]
