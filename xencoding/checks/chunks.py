@@ -42,6 +42,17 @@ def _contains_all_keys(dictionary, keys):
     return np.all(np.isin(dict_keys, keys)) and np.all(np.isin(keys, dict_keys))
 
 
+def _contains_only_dims(ds, dictionary):
+    variables = list(ds.data_vars)
+    dim_names = set(list(ds.dims))
+    dict_keys = set(list(dictionary.keys()))
+    
+    is_dim_subset = dict_keys.issubset(dim_names) or dim_names.issubset(dict_keys)
+    is_no_var = not np.any(np.isin(dict_keys, variables))
+    return is_dim_subset and is_no_var
+
+    
+    
 def _check_contains_all_keys(dictionary, keys, error_message):
     """Check a dictionary contains all the keys, else raise error."""
     if not _contains_all_keys(dictionary, keys):
@@ -69,8 +80,7 @@ def _is_chunk_dict_per_variable(chunks_dict, ds):
 
 def _is_chunk_dict_per_dims(chunks_dict, ds):
     """Return True if chunks dictionary is defined per dimension."""
-    dim_names = list(ds.dims)
-    return _contains_all_keys(chunks_dict, dim_names)
+    return _contains_only_dims(ds, chunks_dict)
 
 
 def _checks_chunks_type(chunks):
@@ -100,8 +110,43 @@ def _check_default_chunks(default_chunks, ds):
     return default_chunks
 
 
+def sanitize_chunks_dims_dict(ds, chunks):
+    """Replace -1 with dimension length."""
+    dims_dict = dict(ds.dims)
+    new_chunks = {}
+    for key, chunk in chunks.items():
+        if chunk == -1:
+            new_chunks[key] = dims_dict[key]
+        else: 
+            new_chunks[key] = chunk            
+    return new_chunks
+
+
+def _add_default_chunk_to_missing_dims(ds, chunks): 
+    """Add chunk -1 to unspecified dimensions."""
+    new_chunks = {} 
+    for dim in list(ds.dims):
+        if dim not in chunks:
+            new_chunks[dim] = -1 
+        else:
+            new_chunks[dim] = chunks[dim]
+    return new_chunks
+
+
+def _remove_unecessary_dimensions(ds, chunks): 
+    """Remove dimensions not present in dataset."""
+    chunks = {dim: chunks[dim] for dim in list(ds.dims)}
+    return chunks 
+
+
 def _convert_dims_chunks_dict(ds, chunks):
     """Convert 'per dimension' chunks dictionary to 'per variable' dictionary."""
+    # Add -1 to missing dimensions 
+    chunks = _add_default_chunk_to_missing_dims(ds, chunks)
+    # Remove unnecessary dimensions
+    chunks = _remove_unecessary_dimensions(ds, chunks)
+    # Sanize chunks (if -1) (accept auto also in future?)
+    chunks = sanitize_chunks_dims_dict(ds, chunks)
     # - Checks chunks value validity
     if not _all_integer_chunks_values(list(chunks.values())):
         raise ValueError("Invalid 'chunks' values")

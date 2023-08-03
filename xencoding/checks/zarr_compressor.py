@@ -14,17 +14,6 @@ def is_numcodecs(compressor):
     return True
 
 
-def _check_variables_names_type(variable_names):
-    """Check variable_names type."""
-    if not isinstance(variable_names, (list, str)):
-        raise TypeError("'variable_names' must be a string or a list")
-    if isinstance(variable_names, str):
-        variable_names = [variable_names]
-    if not all([isinstance(s, str) for s in variable_names]):
-        raise TypeError("Specify all variable names as string within the 'variable_names' list.")
-    return variable_names
-
-
 def _check_compressor_type(compressor, variable_names):
     """Check compressor type."""
     if not (isinstance(compressor, (str, dict, type(None))) or is_numcodecs(compressor)):
@@ -62,7 +51,7 @@ def _check_compressor_dict(compressor):
     return compressor
 
 
-def check_compressor(compressor, variable_names, default_compressor=None):
+def check_compressor(ds, compressor, default_compressor=None):
     """Check compressor validity for zarr writing.
 
     compressor = None --> No compression.
@@ -72,11 +61,10 @@ def check_compressor(compressor, variable_names, default_compressor=None):
     compressor = {..} --> A dictionary specifying a compressor for each Dataset variable.
 
     default_compressor: None or numcodecs compressor. None will default to ds.to_zarr() default compressor.
-    variable_names: list of xarray Dataset variables
     """
-    variable_names = _check_variables_names_type(variable_names)
-    compressor = _check_compressor_type(compressor, variable_names)
-    default_compressor = _check_compressor_type(default_compressor, variable_names)
+    keys = list(ds.data_vars) + list(ds.coords)
+    compressor = _check_compressor_type(compressor, keys)
+    default_compressor = _check_compressor_type(default_compressor, keys)
 
     # If a string --> "Auto" --> Apply default_compressor (if specified)
     if isinstance(compressor, str):
@@ -85,7 +73,7 @@ def check_compressor(compressor, variable_names, default_compressor=None):
 
     # If a unique compressor, create a dictionary with the same compressor for all variables
     elif is_numcodecs(compressor) or isinstance(compressor, type(None)):
-        compressor = {var: compressor for var in variable_names}
+        compressor = {key: compressor for key in keys}
 
     # If a dictionary, check keys validity and compressor validity
     else:  # isinstance(compressor, dict):

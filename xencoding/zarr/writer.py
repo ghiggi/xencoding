@@ -9,9 +9,46 @@ import os
 import zarr
 
 from xencoding.checks.chunks import check_chunks
-from xencoding.checks.compressor import check_compressor
+from xencoding.checks.zarr_compressor import check_compressor
 from xencoding.checks.rounding import check_rounding
 
+
+def set_rounding(ds, rounding):
+    # - Rounding (if required)
+    if rounding is not None:
+        if isinstance(rounding, int):
+            ds = ds.round(decimals=rounding)
+        elif isinstance(rounding, dict):
+            for var, decimal in rounding.items():
+                if decimal is not None:
+                    ds[var] = ds[var].round(decimal)
+        else:
+            raise NotImplementedError("'rounding' should be int, dict or None.")
+    return ds 
+
+
+def remove_unsupported_filters(ds):
+    # - Remove previous encoding filters
+    # - https://github.com/pydata/xarray/issues/3476
+    # for var in ds.data_vars.keys():
+    #     ds[var].encoding['filters'] = None
+    for dim in list(ds.dims.keys()):
+        ds[dim].encoding["filters"] = None  # Without this, bug when coords are str objects
+    return ds 
+
+
+def set_chunks(ds, chunks_dict):
+    for var, chunks in chunks_dict.items():
+        if chunks is not None:
+            ds[var] = ds[var].chunk(chunks)
+    return ds 
+
+
+def set_compressor(ds, compressor_dict):
+    for var, compressor in compressor_dict.items():
+        ds[var].encoding["compressor"] = compressor
+    return ds   
+        
 
 def write_zarr(
     zarr_fpath,
@@ -54,50 +91,19 @@ def write_zarr(
         append_dim = None
 
     ##------------------------------------------------------------------------.
-    ### - Define file chunking
+    # Checks 
     chunks = check_chunks(ds, chunks=chunks, default_chunks=default_chunks)
-
-    ##------------------------------------------------------------------------.
-    # - Define compressor and filters
-    compressor = check_compressor(
+    compressor = check_compressor(ds,  
         compressor=compressor,
         default_compressor=default_compressor,
-        variable_names=list(ds.data_vars.keys()),
-    )
-
-    ##------------------------------------------------------------------------.
-    # - Define rounding option
+    ) 
     rounding = check_rounding(rounding=rounding, variable_names=list(ds.data_vars.keys()))
 
-    ##------------------------------------------------------------------------.
-    # - Rounding (if required)
-    if rounding is not None:
-        if isinstance(rounding, int):
-            ds = ds.round(decimals=rounding)
-        elif isinstance(rounding, dict):
-            for var, decimal in rounding.items():
-                if decimal is not None:
-                    ds[var] = ds[var].round(decimal)
-        else:
-            raise NotImplementedError("'rounding' should be int, dict or None.")
-    ##------------------------------------------------------------------------.
-    # - Remove previous encoding filters
-    # - https://github.com/pydata/xarray/issues/3476
-    # for var in ds.data_vars.keys():
-    #     ds[var].encoding['filters'] = None
-    for dim in list(ds.dims.keys()):
-        ds[dim].encoding["filters"] = None  # Without this, bug when coords are str objects
-
-    ##------------------------------------------------------------------------.
-    # - Add chunk encoding the dataset
-    for var, chunk in chunks.items():
-        if chunk is not None:
-            ds[var] = ds[var].chunk(chunk)
-
-    ##------------------------------------------------------------------------.
-    # - Add compressor encoding to each DataArray
-    for var, comp in compressor.items():
-        ds[var].encoding["compressor"] = comp
+    # Preprocessing 
+    ds = remove_unsupported_filters(ds)
+    ds = set_rounding(ds, rounding=rounding)
+    ds = set_chunks(ds, chunks_dict=chunks)
+    ds = set_compressor(ds, compressor_dict=compressor)
 
     ##------------------------------------------------------------------------.
     ### - Write zarr files

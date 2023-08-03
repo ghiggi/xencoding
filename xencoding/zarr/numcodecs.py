@@ -7,10 +7,16 @@ Created on Thu Aug  3 09:01:42 2023
 import numcodecs
 
 
+# TODO: utility with max clevel per algorithm ! 
+
+def get_valid_blosc_algorithms(): 
+    return ["zstd", "blosclz", "lz4", "lz4hc", "zlib"]
+
+    
 def _get_blosc(algorithm="lz4", clevel=1, shuffle=1, blocksize=0):
     """Get BLOSC compressor.
 
-    algorithm=‘zstd’, ‘blosclz’, ‘lz4’, ‘lz4hc’, ‘zlib’ or ‘snappy’.
+    algorithm=["zstd", "blosclz", "lz4", "lz4hc", "zlib"].
     NOSHUFFLE (0), SHUFFLE (1), BITSHUFFLE (2) or AUTOSHUFFLE (-1).
     """
     return numcodecs.blosc.Blosc(
@@ -63,7 +69,7 @@ def _get_zstd(clevel=1):
 
     clevel from 1 to 21.
     """
-    return numcodecs.blosc.zstd.Zstd(level=clevel)
+    return numcodecs.zstd.Zstd(level=clevel)
 
 
 def _get_zlib(clevel=1):
@@ -126,7 +132,9 @@ def _get_lmza(clevel=1, filters=["delta", "lmza2"], delta_dist=None):
 
 
 def get_valid_compressors():
-    compressors = ["blosc", "b2", "gzip", "zfpy", "zstd", "zlib", "lz4", "lmza"]
+    """Get valid numcodecs compressors.""" 
+    # lz4 is also avalaible within blosc
+    compressors = ["blosc", "b2", "gzip", "zstd", "zlib", "lmza", "zfpy", "lz4"]  
     return compressors
 
 
