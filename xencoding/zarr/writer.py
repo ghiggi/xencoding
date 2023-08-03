@@ -9,8 +9,8 @@ import os
 import zarr
 
 from xencoding.checks.chunks import check_chunks
-from xencoding.checks.zarr_compressor import check_compressor
 from xencoding.checks.rounding import check_rounding
+from xencoding.checks.zarr_compressor import check_compressor
 
 
 def set_rounding(ds, rounding):
@@ -24,7 +24,7 @@ def set_rounding(ds, rounding):
                     ds[var] = ds[var].round(decimal)
         else:
             raise NotImplementedError("'rounding' should be int, dict or None.")
-    return ds 
+    return ds
 
 
 def remove_unsupported_filters(ds):
@@ -34,21 +34,21 @@ def remove_unsupported_filters(ds):
     #     ds[var].encoding['filters'] = None
     for dim in list(ds.dims.keys()):
         ds[dim].encoding["filters"] = None  # Without this, bug when coords are str objects
-    return ds 
+    return ds
 
 
 def set_chunks(ds, chunks_dict):
     for var, chunks in chunks_dict.items():
         if chunks is not None:
             ds[var] = ds[var].chunk(chunks)
-    return ds 
+    return ds
 
 
 def set_compressor(ds, compressor_dict):
     for var, compressor in compressor_dict.items():
         ds[var].encoding["compressor"] = compressor
-    return ds   
-        
+    return ds
+
 
 def write_zarr(
     zarr_fpath,
@@ -91,15 +91,16 @@ def write_zarr(
         append_dim = None
 
     ##------------------------------------------------------------------------.
-    # Checks 
+    # Checks
     chunks = check_chunks(ds, chunks=chunks, default_chunks=default_chunks)
-    compressor = check_compressor(ds,  
+    compressor = check_compressor(
+        ds,
         compressor=compressor,
         default_compressor=default_compressor,
-    ) 
+    )
     rounding = check_rounding(rounding=rounding, variable_names=list(ds.data_vars.keys()))
 
-    # Preprocessing 
+    # Preprocessing
     ds = remove_unsupported_filters(ds)
     ds = set_rounding(ds, rounding=rounding)
     ds = set_chunks(ds, chunks_dict=chunks)
