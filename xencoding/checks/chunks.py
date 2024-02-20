@@ -111,7 +111,7 @@ def _check_default_chunks(default_chunks, ds):
 
 def sanitize_chunks_dims_dict(ds, chunks):
     """Replace -1 with dimension length."""
-    dims_dict = dict(ds.dims)
+    dims_dict = dict(ds.sizes)
     new_chunks = {}
     for key, chunk in chunks.items():
         if chunk == -1:
@@ -253,7 +253,7 @@ def sanitize_chunks_dict(chunks_dict, ds):
     Change chunk value '-1' or None to length of the dataset dimension.
     Rechunk and zarr do not currently support -1 specification used by dask and xarray.
     """
-    dict_dims = dict(ds.dims)
+    dict_dims = dict(ds.sizes)
     for var in chunks_dict.keys():
         if chunks_dict[var] is not None:
             for k, v in chunks_dict[var].items():

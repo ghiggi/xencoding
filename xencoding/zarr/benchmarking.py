@@ -145,6 +145,74 @@ def get_memory_size_chunk(x):
 
 # -----------------------------------------------------------------------------.
 #### IO Timing
+import os
+from xencoding.zarr.numcodecs import (
+    get_valid_blosc_algorithms,
+    get_compressor,
+)
+from xencoding.checks.zarr_compressor import check_compressor
+from xencoding.zarr.writer import set_compressor
+
+
+def benchmark_compressors(ds, compressors_names, clevels, dst_dir="/tmp/", prefix="", suffix=""):
+    benchmark_dict = {} 
+    benchmark_dict["writing"] = {} 
+    benchmark_dict["reading"] = {}
+    benchmark_dict["filesize"] = {}
+    for compressor_name in compressors_names:
+        for clevel in clevels:
+            if compressor_name == "blosc":
+                algorithms = get_valid_blosc_algorithms()
+            else:
+                algorithms = [""]
+    
+            for algorithm in algorithms:
+                # Define compressor kwargs
+                if compressor_name == "blosc":
+                    kwargs = {"clevel": clevel, "algorithm": algorithm}
+                else:
+                    kwargs = {"clevel": clevel}
+                # Define compressor name 
+                if algorithm == "":
+                    compressor_acronym = f"{compressor_name}_c{clevel}"
+                else:
+                    compressor_acronym = f"{compressor_name}_{algorithm}_c{clevel}"
+                if prefix != "": 
+                    compressor_acronym = f"{prefix}_{compressor_acronym}"
+                if suffix != "": 
+                    compressor_acronym = f"{compressor_acronym}_{suffix}"
+                # Define ZarrStore path
+                store_path = os.path.join(dst_dir, f"example2_{compressor_acronym}.zarr.zip")
+                print(compressor_acronym)
+        
+                # Set compressor
+                compressor = get_compressor(compressor_name=compressor_name, **kwargs)
+                compressor_dict = check_compressor(ds, compressor)
+                ds = set_compressor(ds, compressor_dict)
+                
+                # Writing 
+                t_i = time.time()
+                zarr_store = zarr.ZipStore(store_path, mode="w")
+                ds.to_zarr(store=zarr_store)
+                zarr_store.close()
+                t_f = time.time()
+                benchmark_dict["writing"][compressor_acronym] = round(t_f - t_i, 1)
+                
+                # Measure file size 
+                benchmark_dict["filesize"][compressor_acronym] = round(os.path.getsize(store_path) / (1024 ** 2), 2)
+                
+                # Reading 
+                t_i = time.time()
+                ds_read = xr.open_zarr(
+                    store_path, chunks={}, decode_cf=True, mask_and_scale=True
+                )
+                ds_read = ds_read.compute()
+                t_f = time.time()
+                benchmark_dict["reading"][compressor_acronym] = round(t_f - t_i, 1)
+                
+    return benchmark_dict
+
+
 def get_reading_time(fpath, isel_dict={}, n_repetitions=5):
     """Return the reading time of a Dataset (subset)."""
 
