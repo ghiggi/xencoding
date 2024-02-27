@@ -4,11 +4,12 @@ Created on Thu Aug  3 09:05:13 2023
 
 @author: ghiggi
 """
-from xencoding.zarr.checks.chunks import check_chunks
-from xencoding.zarr.checks.zarr_store import _check_zarr_store
+from xencoding.checks.chunks import check_chunks
+from xencoding.checks.zarr_store import _check_zarr_store
 
 
-def rechunk_dataset(ds, chunks, target_store, temp_store, max_mem="2GB", force=False):
+def rechunk_dataset(ds, target_chunks, target_store, temp_store, max_mem, 
+                    force=False, **to_zarr_kwargs):
     """
     Rechunk on disk a xarray Dataset read lazily from a zarr store.
 
@@ -16,28 +17,29 @@ def rechunk_dataset(ds, chunks, target_store, temp_store, max_mem="2GB", force=F
     ----------
     ds : xarray.Dataset
         A Dataset opened with open_zarr().
-    chunks : dict
+    target_chunks : dict
         Custom chunks of the new Dataset.
         If not specified for each Dataset variable, implicitly assumed.
-    target_store : str
-        Filepath of the zarr store where to save the new Dataset.
+    target_store : str, zarr.Store
+        Filepath of the zarr store (or zarr.Store object) where to save the new Dataset.
     temp_store : str
         Filepath of a zarr store where to save temporary data.
         This store is removed at the end of the rechunking operation.
     max_mem : str, optional
-        The amount of memory (in bytes) that workers are allowed to use.
-        The default is '1GB'.
-
+        The amount of memory (in bytes) that each workers is allowed to use.
+        A string (e.g. 100MB) can also be used.
+    force : bool 
+        If the target_store already exists, if force=True it is removed, otherwise 
+        an error is raised. 
+    to_zarr_kwargs: dict
+        Arguments to pass to the ds.to_zarr() functions.
+        This includes the encoding dictionary ! 
+    
     Returns
     -------
     None.
 
     """
-    # TODO
-    # - Add compressors options
-    # compressor = Blosc(cname='zstd', clevel=1, shuffle=Blosc.BITSHUFFLE)
-    # options = dict(compressor=compressor)
-    # rechunk(..., target_options=options)
     ##------------------------------------------------------------------------.
     from dask.diagnostics import ProgressBar
     from rechunker import rechunk
@@ -47,8 +49,17 @@ def rechunk_dataset(ds, chunks, target_store, temp_store, max_mem="2GB", force=F
     _check_zarr_store(temp_store, force=True)  # remove if exists
 
     # Check chunks
-    target_chunks = check_chunks(ds=ds, chunks=chunks, default_chunks=None)
-
+    # - If target chunk is a dictionary, should also include the dimensions chunks !  
+    # - currently check_chunks does not include dimensions ! 
+    # --> SOLVE THE BUG. Can inspire from parse_target_chunks_from_dim_chunks
+    
+    # --> rechunker.parse_target_chunks_from_dim_chunks
+    # from rechunker.api import parse_target_chunks_from_dim_chunks
+    # target_chunks = parse_target_chunks_from_dim_chunks(ds, target_chunks)
+    
+    # target_chunks = check_chunks(ds=ds, chunks=target_chunks, default_chunks=None)
+    # print(target_chunks)
+    
     # Plan rechunking
     r = rechunk(
         ds,
@@ -56,6 +67,7 @@ def rechunk_dataset(ds, chunks, target_store, temp_store, max_mem="2GB", force=F
         max_mem=max_mem,
         target_store=target_store,
         temp_store=temp_store,
+        target_options=to_zarr_kwargs,
     )
 
     # Execute rechunking
@@ -63,4 +75,4 @@ def rechunk_dataset(ds, chunks, target_store, temp_store, max_mem="2GB", force=F
         r.execute()
 
     # Remove temporary store
-    _check_zarr_store(temp_store, force=True)  # remove if exists
+    # _check_zarr_store(temp_store, force=True)  # remove if exists
