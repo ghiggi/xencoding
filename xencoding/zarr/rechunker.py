@@ -61,18 +61,20 @@ def rechunk_dataset(ds, target_chunks, target_store, temp_store, max_mem,
     # print(target_chunks)
     
     # Plan rechunking
-    r = rechunk(
-        ds,
-        target_chunks=target_chunks,
-        max_mem=max_mem,
-        target_store=target_store,
-        temp_store=temp_store,
-        target_options=to_zarr_kwargs,
-    )
-
-    # Execute rechunking
-    with ProgressBar():
-        r.execute()
-
-    # Remove temporary store
-    # _check_zarr_store(temp_store, force=True)  # remove if exists
+    try: 
+        r = rechunk(
+            ds,
+            target_chunks=target_chunks,
+            max_mem=max_mem,
+            target_store=target_store,
+            temp_store=temp_store,
+            target_options=to_zarr_kwargs,
+        )
+    
+        # Execute rechunking
+        with ProgressBar():
+            r.execute()
+    except Exception:
+        # Remove temporary store
+        _check_zarr_store(temp_store, force=True)  # remove if exists
+        raise ValueError("Rechunking failed!")
